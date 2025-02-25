@@ -1,0 +1,157 @@
+/* Navbar */
+.fundoo-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    z-index: 1000;
+}
+
+.fundoo-logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.fundoo-logo i {
+    margin-right: 10px;
+}
+
+.fundoo-search-bar input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 500px;
+}
+
+.fundoo-user-profile {
+    position: relative;
+    cursor: pointer;
+}
+
+.fundoo-user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.fundoo-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.fundoo-user-profile:hover .fundoo-dropdown {
+    display: block;
+}
+
+/* Main Content */
+.fundoo-main-content {
+    margin-top: 70px;
+    /* Adjust based on navbar height */
+    padding: 20px;
+}
+
+.fundoo-container {
+    display: flex;
+}
+
+/* Sidebar */
+.fundoo-sidebar {
+    width: 250px;
+    background-color: #f8f9fa;
+    padding: 20px;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.fundoo-sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.fundoo-sidebar ul li {
+    margin-bottom: 15px;
+}
+
+.fundoo-sidebar ul li a {
+    text-decoration: none;
+    color: #333;
+    display: flex;
+    align-items: center;
+}
+
+.fundoo-sidebar ul li a i {
+    margin-right: 10px;
+}
+
+/* Notes Grid */
+.fundoo-notes-grid {
+    flex: 1;
+    margin-left: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* Floating Action Button (FAB) */
+.fundoo-fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Create Note Form */
+.fundoo-create-note-form {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    z-index: 1001;
+}
+
+.fundoo-create-note-form h2 {
+    margin-bottom: 20px;
+}
+
+.fundoo-submit-button,
+.fundoo-cancel-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.fundoo-submit-button {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+.fundoo-cancel-button {
+    background-color: #ccc;
+    margin-left: 10px;
+}
