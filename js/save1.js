@@ -1,227 +1,201 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const token = localStorage.getItem("jwtToken");
+document.addEventListener("DOMContentLoaded", () => {
+    const emailInput = document.getElementById("emailInput");
+    const sendOtpBtn = document.getElementById("sendOtpBtn");
+    const emailError = document.getElementById("emailError");
+    const emailSuccess = document.getElementById("emailSuccess");
 
-    if (!token) {
-        alert("You are not logged in. Redirecting to login page...");
-        window.location.href = "../pages/fundooLogin.html";
-        return;
-    }
+    const otpInput = document.getElementById("otpInput");
+    const verifyOtpBtn = document.getElementById("verifyOtpBtn");
+    const otpError = document.getElementById("otpError");
+    const otpSuccess = document.getElementById("otpSuccess");
 
-    const createNoteBtn = document.getElementById("create-note-btn");
-    const createNoteForm = document.getElementById("create-note-form");
-    const cancelNoteBtn = document.getElementById("cancel-note-btn");
-    const noteForm = document.getElementById("note-form");
-    const notesGrid = document.getElementById("notes-grid");
+    const newPassword = document.getElementById("newPassword");
+    const confirmPassword = document.getElementById("confirmPassword");
+    const resetPasswordBtn = document.getElementById("resetPasswordBtn");
+    const passwordError = document.getElementById("passwordError");
+    const passwordSuccess = document.getElementById("passwordSuccess");
 
-    createNoteBtn.addEventListener("click", () => {
-        createNoteForm.style.display = "block";
-    });
+    const step1 = document.getElementById("step1");
+    const step2 = document.getElementById("step2");
+    const step3 = document.getElementById("step3");
 
-    cancelNoteBtn.addEventListener("click", () => {
-        createNoteForm.style.display = "none";
-    });
+    let userEmail = ""; // Store email across steps
+    let userId = null; // Store user ID if needed
 
-    // Handle Note Submission
-    noteForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const title = document.getElementById("note-title").value;
-        const content = document.getElementById("note-content").value;
-        const color = document.getElementById("note-color").value;
-
-        try {
-            const response = await fetch("http://localhost:3000/api/v1/notes/create", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ note: { title, content, color } })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                alert("Note created successfully!");
-                noteForm.reset();
-                createNoteForm.style.display = "none";
-                fetchNotes(); // Fetch updated notes
-            } else {
-                console.error("Error response:", result);
-                alert("Failed to create note: " + (result.error || JSON.stringify(result)));
-            }
-        } catch (error) {
-            console.error("Error creating note:", error);
-            alert("Something went wrong. Please try again.");
-        }
-    });
-
-    // Fetch Notes from Backend
-    async function fetchNotes() {
-        try {
-            const response = await fetch("http://localhost:3000/api/v1/notes/getnote", {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                }
-            });
-
-            const result = await response.json();
-            
-            console.log("Fetched notes:", result); // Debugging
-
-            if (response.ok) {
-                displayNotes(result.notes);
-            } else {
-                console.error("Error response:", result);
-                alert("Failed to fetch notes.");
-            }
-        } catch (error) {
-            console.error("Error fetching notes:", error);
-            // alert("Something went wrong. Please try again.");
-        }
-    }
-
-    // Display Notes
-    function displayNotes(notes) {
-        notesGrid.innerHTML = ""; // Clear previous notes
-
-        if (!notes || notes.length === 0) {
-            notesGrid.innerHTML = "<p>No notes found.</p>";
+    // Step 1: Send OTP
+    sendOtpBtn.addEventListener("click", async () => {
+        const email = emailInput.value.trim();
+        if (!validateEmail(email)) {
+            emailError.textContent = "Invalid email format!";
+            emailError.style.display = "block";
             return;
         }
 
-        notes.forEach(note => {
-            const noteCard = document.createElement("div");
-            noteCard.className = "fundoo-note-card";
-            noteCard.style.backgroundColor = note.color || "#ffffff";
-            noteCard.innerHTML = `
-                <h3>${note.title}</h3>
-                <p>${note.content}</p>
-                <div class="note-actions">
-                    <span class="edit-icon" data-id="${note.id}">✏️</span>
-                    <span class="archive-icon" data-id="${note.id}">📥</span>
-                    <span class="delete-icon" data-id="${note.id}">🗑️</span>
-                </div>
-            `;
-            notesGrid.appendChild(noteCard);
-        });
-
-        addIconEventListeners();
-    }
-
-    // Add Event Listeners to Icons
-    function addIconEventListeners() {
-        document.querySelectorAll(".edit-icon").forEach(icon =>
-            icon.addEventListener("click", () => editNote(icon.dataset.id))
-        );
-
-        document.querySelectorAll(".archive-icon").forEach(icon =>
-            icon.addEventListener("click", () => archiveNote(icon.dataset.id))
-        );
-
-        document.querySelectorAll(".delete-icon").forEach(icon =>
-            icon.addEventListener("click", () => deleteNote(icon.dataset.id))
-        );
-    }
-
-    // Edit Note
-    async function editNote(noteId) {
-        const newTitle = prompt("Enter new title:");
-        const newContent = prompt("Enter new content:");
-
-        if (newTitle === null || newContent === null) {
-            return; // User canceled the prompt
-        }
+        emailError.style.display = "none";
+        sendOtpBtn.disabled = true;
+        sendOtpBtn.textContent = "Sending...";
 
         try {
-            const response = await fetch(`http://localhost:3000/api/v1/notes/update/${noteId}`, {
-                method: "PUT",
+            const response = await fetch("http://localhost:3000/api/v1/forgetpassword", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user: { email } }),
+            });
+            const data = await response.json();
+            console.log("API Response (Send OTP):", data); // Log the full response
+
+            if (data.success === true) {
+                userEmail = email;
+                emailSuccess.textContent = data.message || "OTP is being processed and will be sent shortly.";
+                emailSuccess.style.display = "block";
+                sendOtpBtn.textContent = "OTP Sent";
+                setTimeout(() => {
+                    step1.style.display = "none";
+                    step2.style.display = "block";
+                }, 1000);
+            } else {
+                emailError.textContent = data.errors || "Failed to send OTP.";
+                emailError.style.display = "block";
+                sendOtpBtn.disabled = false;
+                sendOtpBtn.textContent = "Send OTP";
+            }
+        } catch (error) {
+            emailError.textContent = "Server error. Please try again.";
+            emailError.style.display = "block";
+            sendOtpBtn.disabled = false;
+            sendOtpBtn.textContent = "Send OTP";
+            console.error("Error sending OTP:", error);
+        }
+    });
+
+    // Step 2: Verify OTP
+    verifyOtpBtn.addEventListener("click", async () => {
+        const otp = otpInput.value.trim();
+        if (!otp) {
+            otpError.textContent = "Please enter the OTP.";
+            otpError.style.display = "block";
+            return;
+        }
+
+        otpError.style.display = "none";
+        verifyOtpBtn.disabled = true;
+        verifyOtpBtn.textContent = "Verifying...";
+
+        try {
+            const response = await fetch("http://localhost:3000/api/v1/verify_otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: userEmail, otp }),
+            });
+            const data = await response.json();
+            console.log("API Response (Verify OTP):", data); // Log the full response
+
+            if (data.success === true) {
+                otpSuccess.textContent = data.message || "OTP Verified!";
+                otpSuccess.style.display = "block";
+                setTimeout(() => {
+                    step2.style.display = "none";
+                    step3.style.display = "block";
+                }, 1000);
+            } else {
+                otpError.textContent = data.errors || "Invalid or expired OTP.";
+                otpError.style.display = "block";
+                verifyOtpBtn.disabled = false;
+                verifyOtpBtn.textContent = "Verify OTP";
+            }
+        } catch (error) {
+            otpError.textContent = "Server error. Please try again.";
+            otpError.style.display = "block";
+            verifyOtpBtn.disabled = false;
+            verifyOtpBtn.textContent = "Verify OTP";
+            console.error("Error verifying OTP:", error);
+        }
+    });
+
+    // Step 3: Reset Password
+    resetPasswordBtn.addEventListener("click", async () => {
+        const newPass = newPassword.value.trim();
+        const confirmPass = confirmPassword.value.trim();
+
+        if (newPass.length < 8) {
+            passwordError.textContent = "Password must be at least 8 characters.";
+            passwordError.style.display = "block";
+            return;
+        }
+        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}/.test(newPass)) {
+            passwordError.textContent = "Password must include lowercase, uppercase, number, and special character.";
+            passwordError.style.display = "block";
+            return;
+        }
+        if (newPass !== confirmPass) {
+            passwordError.textContent = "Passwords do not match.";
+            passwordError.style.display = "block";
+            return;
+        }
+
+        passwordError.style.display = "none";
+        resetPasswordBtn.disabled = true;
+        resetPasswordBtn.textContent = "Resetting...";
+
+        try {
+            const token = localStorage.getItem("jwtToken"); // Fetch token from login
+            if (!token) {
+                throw new Error("No authentication token found. Please log in first.");
+            }
+
+            // Fetch user ID with authentication
+            const userResponse = await fetch("http://localhost:3000/api/v1/profile", {
+                method: "GET",
                 headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({ note: { title: newTitle, content: newContent } })
             });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                alert("Note updated successfully!");
-                fetchNotes(); // Refresh the notes list
-            } else {
-                console.error("Error response:", result);
-                alert("Failed to update note: " + (result.error || JSON.stringify(result)));
+            if (!userResponse.ok) {
+                throw new Error(`Profile fetch failed: ${await userResponse.text()}`);
             }
-        } catch (error) {
-            console.error("Error updating note:", error);
-            alert("Something went wrong. Please try again.");
-        }
-    }
+            const userData = await userResponse.json();
+            const userId = userData.user?.id;
+            if (!userId) {
+                throw new Error("User ID not found in profile response.");
+            }
 
-    // Archive Note
-    async function archiveNote(noteId) {
-        const confirmArchive = confirm("Are you sure you want to archive this note?");
-
-        if (!confirmArchive) {
-            return; // User canceled the action
-        }
-
-        try {
-            const response = await fetch(`http://localhost:3000/api/v1/notes/archive/${noteId}`, {
-                method: "PUT",
+            // Reset password with authentication
+            const response = await fetch(`http://localhost:3000/api/v1/resetpassword/${userId}`, {
+                method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                }
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` // Send token
+                },
+                body: JSON.stringify({ otp: otpInput.value.trim(), new_password: newPass }),
             });
-
-            const result = await response.json();
+            const data = await response.json();
+            console.log("API Response (Reset Password):", data); // Log the full response
 
             if (response.ok) {
-                alert("Note archived successfully!");
-                fetchNotes(); // Refresh the notes list
+                passwordSuccess.textContent = data.message || "Password reset successfully!";
+                passwordSuccess.style.display = "block";
+                resetPasswordBtn.textContent = "Reset Done";
+                setTimeout(() => {
+                    window.location.href = "fundooLogin.html";
+                }, 1500);
             } else {
-                console.error("Error response:", result);
-                alert("Failed to archive note: " + (result.error || JSON.stringify(result)));
+                passwordError.textContent = data.errors || "Failed to reset password.";
+                passwordError.style.display = "block";
+                resetPasswordBtn.disabled = false;
+                resetPasswordBtn.textContent = "Reset Password";
             }
         } catch (error) {
-            console.error("Error archiving note:", error);
-            alert("Something went wrong. Please try again.");
+            passwordError.textContent = `Server error or invalid user data. Please try again. Details: ${error.message}`;
+            passwordError.style.display = "block";
+            resetPasswordBtn.disabled = false;
+            resetPasswordBtn.textContent = "Reset Password";
+            console.error("Error resetting password:", error);
         }
+    });
+
+    // Helper function to validate email
+    function validateEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
-
-    // Delete Note
-    async function deleteNote(noteId) {
-        const confirmDelete = confirm("Are you sure you want to delete this note?");
-
-        if (!confirmDelete) {
-            return; // User canceled the action
-        }
-
-        try {
-            const response = await fetch(`http://localhost:3000/api/v1/notes/delete/${noteId}`, {
-                method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                }
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                alert("Note deleted successfully!");
-                fetchNotes(); // Refresh the notes list
-            } else {
-                console.error("Error response:", result);
-                alert("Failed to delete note: " + (result.error || JSON.stringify(result)));
-            }
-        } catch (error) {
-            console.error("Error deleting note:", error);
-            alert("Something went wrong. Please try again.");
-        }
-    }
-
-    fetchNotes(); // Fetch notes on page load
 });
