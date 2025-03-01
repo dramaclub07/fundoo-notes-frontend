@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const refreshBtn = document.getElementById("refreshBtn");
     const viewToggleBtn = document.getElementById("viewToggleBtn");
     const toggleThemeBtn = document.getElementById("toggleTheme");
-    const sidebar = document.querySelector(".fundoo-dash-sidebar");
+    const sidebar = document.querySelector(".fundoo-sidebar");
     const essentialMenu = document.querySelector(".essential-menu");
     const navTitle = document.getElementById("navTitle");
     const apiUrl = "http://localhost:3000/api/v1/notes";
@@ -35,9 +35,27 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
-    // Sidebar Toggle
+    // Sidebar Toggle with width expansion
     essentialMenu.addEventListener("click", () => {
         sidebar.classList.toggle("expanded");
+        
+        // Toggle text visibility in sidebar menu items when expanded
+        const sidebarTextSpans = document.querySelectorAll(".sidebar-nav ul li span");
+        sidebarTextSpans.forEach(span => {
+            span.style.display = sidebar.classList.contains("expanded") ? "inline" : "none";
+        });
+        
+        // Adjust content area when sidebar expands or contracts
+        const contentMain = document.querySelector(".fundoo-content-main");
+        if (contentMain) {
+            contentMain.style.marginLeft = sidebar.classList.contains("expanded") ? "240px" : "60px";
+        }
+    });
+
+    // Initialize sidebar state
+    const sidebarTextSpans = document.querySelectorAll(".sidebar-nav ul li span");
+    sidebarTextSpans.forEach(span => {
+        span.style.display = "none"; // Hide text initially
     });
 
     // Tab Switching with Title Update
