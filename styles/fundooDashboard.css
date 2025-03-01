@@ -12,6 +12,14 @@ body.dark-theme {
   color: #e8eaed;
 }
 
+.note-timestamp {
+  font-size: 12px; /* Smaller text */
+}
+
+body.dark-theme .note-timestamp {
+  color: #bdc1c6; /* Match dark theme */
+}
+
 /* Main Container Structure */
 .fundoo-main-container {
   display: flex;

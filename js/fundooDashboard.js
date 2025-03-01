@@ -38,14 +38,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // Sidebar Toggle with width expansion
     essentialMenu.addEventListener("click", () => {
         sidebar.classList.toggle("expanded");
-        
-        // Toggle text visibility in sidebar menu items when expanded
         const sidebarTextSpans = document.querySelectorAll(".sidebar-nav ul li span");
         sidebarTextSpans.forEach(span => {
             span.style.display = sidebar.classList.contains("expanded") ? "inline" : "none";
         });
-        
-        // Adjust content area when sidebar expands or contracts
         const contentMain = document.querySelector(".fundoo-content-main");
         if (contentMain) {
             contentMain.style.marginLeft = sidebar.classList.contains("expanded") ? "240px" : "60px";
@@ -55,7 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize sidebar state
     const sidebarTextSpans = document.querySelectorAll(".sidebar-nav ul li span");
     sidebarTextSpans.forEach(span => {
-        span.style.display = "none"; // Hide text initially
+        span.style.display = "none";
     });
 
     // Tab Switching with Title Update
@@ -65,12 +61,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Search Input
     const searchInput = document.getElementById("searchInput");
-    if (searchInput) {
-        searchInput.addEventListener("input", function () {
-            searchQuery = searchInput.value.trim().toLowerCase();
-            renderNotes();
-        });
-    }
+    searchInput.addEventListener("input", function () {
+        searchQuery = searchInput.value.trim().toLowerCase();
+        renderNotes();
+    });
 
     // View Toggle
     viewToggleBtn.addEventListener("click", () => {
@@ -86,9 +80,23 @@ document.addEventListener("DOMContentLoaded", function () {
         document.body.classList.toggle("dark-theme");
     });
 
-    // Refresh
-    refreshBtn.addEventListener("click", () => {
-        fetchNotes();
+    // Refresh Notes with Loading Feedback
+    refreshBtn.addEventListener("click", async () => {
+        // Add loading state
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i>'; // Show spinning icon
+
+        try {
+            await fetchNotes();
+            // Optional: Show success feedback
+            console.log("Notes refreshed successfully");
+        } catch (error) {
+            alert("Failed to refresh notes: " + error.message); // User feedback on error
+        } finally {
+            // Reset button state
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        }
     });
 
     // Note Creation Expansion
@@ -117,10 +125,25 @@ document.addEventListener("DOMContentLoaded", function () {
         resetNoteCreation();
     });
 
-    // Modal Save
+    // Modal Save with Timestamp
     modalSaveNoteBtn.addEventListener("click", saveModalNote);
 
     fetchNotes();
+
+    // Function to format timestamp in dd-mm-yyyy and Asia/Kolkata time
+    function formatTimestamp(dateString) {
+        const options = {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true,
+            timeZone: 'Asia/Kolkata'
+        };
+        return new Intl.DateTimeFormat('en-IN', options).format(new Date(dateString));
+    }
 
     function switchView(view) {
         currentView = view;
@@ -135,14 +158,21 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const response = await fetch(`${apiUrl}/getnote`, {
                 method: "GET",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` }
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "Authorization": `Bearer ${authToken}` 
+                }
             });
-            if (!response.ok) throw new Error(`Failed to fetch notes. Status: ${response.status}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Failed to fetch notes: ${errorData.error || response.statusText}`);
+            }
             const result = await response.json();
             allNotes = result.notes || [];
             renderNotes();
         } catch (error) {
             console.error("Error fetching notes:", error);
+            throw error; // Re-throw to be caught by the refreshBtn handler
         }
     }
 
@@ -179,7 +209,10 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const response = await fetch(`${apiUrl}/create`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "Authorization": `Bearer ${authToken}` 
+                },
                 body: JSON.stringify({
                     note: {
                         title: title || "Untitled",
@@ -219,7 +252,8 @@ document.addEventListener("DOMContentLoaded", function () {
             <h5 class="note-title">${note.title || "Untitled"}</h5>
             <p class="note-content">${note.content || ""}</p>
             ${note.label ? `<span class="note-label">${note.label}</span>` : ""}
-            ${note.reminder ? `<small class="note-reminder">Reminder: ${new Date(note.reminder).toLocaleString()}</small>` : ""}
+            ${note.reminder ? `<small class="note-reminder text-muted">Reminder: ${formatTimestamp(note.reminder)}</small>` : ""}
+            <small class="note-timestamp text-muted d-block mb-2">Last updated: ${formatTimestamp(note.updated_at)}</small>
             <div class="note-icons">
                 ${currentView === "notes" || currentView === "archive" ? `
                     <i class="fas fa-thumbtack pin-icon ${note.is_pinned ? "pinned" : ""}" data-id="${note.id}" title="${note.is_pinned ? "Unpin" : "Pin"}"></i>
@@ -257,7 +291,10 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             await fetch(`${apiUrl}/update/${id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "Authorization": `Bearer ${authToken}` 
+                },
                 body: JSON.stringify({ note: { is_pinned: pin } })
             });
             updateNoteLocally(id, { is_pinned: pin });
@@ -270,7 +307,10 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             await fetch(`${apiUrl}/archive/${id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "Authorization": `Bearer ${authToken}` 
+                },
                 body: JSON.stringify({ note: { is_archived: archive } })
             });
             updateNoteLocally(id, { is_archived: archive });
@@ -283,7 +323,10 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             await fetch(`${apiUrl}/trash/${id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "Authorization": `Bearer ${authToken}` 
+                },
                 body: JSON.stringify({ note: { is_deleted: trash } })
             });
             updateNoteLocally(id, { is_deleted: trash });
@@ -327,19 +370,21 @@ document.addEventListener("DOMContentLoaded", function () {
         const updatedNote = {
             title: modalNoteTitle.value.trim() || "Untitled",
             content: modalNoteContent.value.trim(),
-            color: modalColorPicker.value,
-            label: modalLabelInput.value.trim(),
-            reminder: modalReminderInput.value ? new Date(modalReminderInput.value).toISOString() : null,
-            is_pinned: document.querySelector('[data-action="pin"]').classList.contains("pinned")
+            color: modalColorPicker.value
         };
 
         try {
-            await fetch(`${apiUrl}/update/${currentNoteId}`, {
+            const response = await fetch(`${apiUrl}/update/${currentNoteId}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "Authorization": `Bearer ${authToken}` 
+                },
                 body: JSON.stringify({ note: updatedNote })
             });
-            updateNoteLocally(currentNoteId, updatedNote);
+            if (!response.ok) throw new Error("Failed to update note");
+            const updatedNoteFromServer = await response.json();
+            updateNoteLocally(currentNoteId, updatedNoteFromServer);
             modal.hide();
         } catch (error) {
             console.error("Error saving note:", error);
