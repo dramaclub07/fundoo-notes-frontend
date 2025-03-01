@@ -2,69 +2,776 @@
 <html lang="en">
 
 <head>
+    <title>Fundoo Notes</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fundoo Notes - Dashboard</title>
-    <link rel="stylesheet" href="../styles/fundooDashboard.css">
+    <meta name="theme-color" content="#202124">
+    <meta name="description" content="Fundoo Notes - A Google Keep Clone">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script defer src="../js/fundooDashboard.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #202124;
+            --sidebar-bg: #171717;
+            --note-bg: #303134;
+            --text-color: #e8eaed;
+            --accent-color: #8ab4f8;
+            --border-color: #5f6368;
+            --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body.dark-theme {
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            font-family: "Roboto", sans-serif;
+            font-size: 18px;
+            /* Base text size */
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container-fluid {
+            height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 240px;
+            min-width: 240px;
+            background-color: var(--sidebar-bg);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: var(--shadow-light);
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .sidebar-item {
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 20px;
+            transition: background-color 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background-color: var(--border-color);
+            transform: translateX(5px);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background-color: var(--dark-bg);
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+            position: sticky;
+            top: 0;
+            background: var(--dark-bg);
+            z-index: 5;
+            padding: 10px 0;
+        }
+
+        .top-bar h1 {
+            font-size: 28px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .search-bar {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background-color: #3c4043;
+            /* Matching image search bar color */
+            color: var(--text-color);
+            font-size: 18px;
+            transition: box-shadow 0.2s;
+        }
+
+        .search-bar:focus {
+            box-shadow: 0 0 6px var(--accent-color);
+            outline: none;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background-color: #d2e3fc;
+            /* Matching image FAB color */
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            box-shadow: var(--shadow-hover);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            z-index: 20;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(138, 180, 248, 0.4);
+        }
+
+        .modal-content {
+            background-color: var(--dark-bg) !important;
+            color: var(--text-color) !important;
+        }
+
+        .note-creation {
+            background-color: var(--note-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-light);
+            animation: fadeIn 0.3s ease;
+            position: relative;
+            max-width: 100%;
+            width: 100%;
+            max-width: 300px;
+            /* Matching note width from image */
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .note-title,
+        .note-content {
+            border: none;
+            background: transparent;
+            color: var(--text-color);
+            font-size: 20px;
+            width: 100%;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .note-content {
+            min-height: 120px;
+            font-size: 18px;
+            resize: vertical;
+        }
+
+        .note-title:focus,
+        .note-content:focus {
+            outline: none;
+            box-shadow: 0 1px 0 var(--accent-color);
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .action-btn,
+        .color-picker,
+        .label-picker,
+        .reminder-picker {
+            border: none;
+            background: transparent;
+            color: var(--accent-color);
+            cursor: pointer;
+            font-size: 20px;
+            padding: 6px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+
+        .action-btn:hover,
+        .color-picker:hover,
+        .label-picker:hover,
+        .reminder-picker:hover {
+            color: #a1c2ff;
+        }
+
+        .color-picker {
+            appearance: none;
+            padding: 6px 12px;
+            font-size: 18px;
+        }
+
+        .label-picker {
+            background: var(--note-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            font-size: 18px;
+        }
+
+        .reminder-picker {
+            padding: 6px;
+            font-size: 18px;
+        }
+
+        .close-btn {
+            margin-left: auto;
+        }
+
+        .notes-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            /* Matching spacing from image */
+            padding: 0 10px;
+        }
+
+        .note {
+            background-color: var(--note-bg);
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 150px;
+            position: relative;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-light);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: move;
+            overflow: hidden;
+            width: 100%;
+            max-width: 300px;
+            /* Matching note width from image */
+        }
+
+        .note .note-title {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .note .note-content {
+            font-size: 18px;
+        }
+
+        .note:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .note.dragging {
+            opacity: 0.5;
+        }
+
+        .pinned {
+            order: -1;
+            /* Move pinned notes to top */
+        }
+
+        .snackbar {
+            visibility: hidden;
+            min-width: 300px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            padding: 16px;
+            position: fixed;
+            z-index: 30;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            box-shadow: var(--shadow-hover);
+            font-size: 18px;
+        }
+
+        .snackbar.show {
+            visibility: visible;
+            animation: fadeInOut 0.5s;
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            10% {
+                bottom: 20px;
+                opacity: 1;
+            }
+
+            90% {
+                bottom: 20px;
+                opacity: 1;
+            }
+
+            100% {
+                bottom: 0;
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+                min-width: 60px;
+                padding: 10px;
+            }
+
+            .sidebar-item {
+                text-align: center;
+                padding: 8px;
+                font-size: 16px;
+            }
+
+            .top-bar h1 {
+                font-size: 24px;
+            }
+
+            .fab {
+                bottom: 15px;
+                right: 15px;
+                width: 48px;
+                height: 48px;
+            }
+
+            .note {
+                min-height: 120px;
+                padding: 10px;
+                max-width: 100%;
+                /* Full width on mobile */
+            }
+
+            .notes-container {
+                padding: 0 5px;
+            }
+        }
+
+        /* Accessibility */
+        [aria-hidden="true"] {
+            display: none;
+        }
+
+        .note:focus,
+        .fab:focus {
+            outline: 3px solid var(--accent-color);
+            outline-offset: 2px;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+    </style>
 </head>
 
-<body>
-    <!-- Navbar -->
-    <nav class="fundoo-navbar">
-        <div class="fundoo-logo">
-            <i class="fas fa-sticky-note"></i> Fundoo Notes
+<body class="dark-theme">
+    <div class="container-fluid p-0 d-flex" style="height: 100vh;">
+        <!-- Sidebar -->
+        <div class="sidebar bg-dark p-3 vh-100" role="navigation" aria-label="Menu"
+            style="width: 240px; min-width: 240px;">
+            <div class="sidebar-item list-group-item list-group-item-dark active text-center" aria-current="page">📝
+                Notes</div>
+            <div class="sidebar-item list-group-item list-group-item-dark text-center">⏰ Reminders</div>
+            <div class="sidebar-item list-group-item list-group-item-dark text-center">🏷️ Edit Labels</div>
+            <div class="sidebar-item list-group-item list-group-item-dark text-center">📦 Archive</div>
+            <div class="sidebar-item list-group-item list-group-item-dark text-center">🗑️ Bin</div>
         </div>
-        <div class="fundoo-search-bar">
-            <input type="text" placeholder="Search notes..." id="search-input">
-        </div>
-        <div class="fundoo-user-profile" id="user-avatar-container">
-            <div class="user-avatar" id="user-avatar">P</div> <!-- Placeholder for user initials -->
-            <div class="fundoo-dropdown">
-                <a href="#">Profile</a>
-                <a href="#" id="logout">Logout</a>
+
+        <!-- Main Content -->
+        <div class="flex-grow-1 p-3 overflow-auto" role="main">
+            <!-- Top Bar -->
+            <div class="top-bar mb-3 d-flex align-items-center sticky-top bg-dark p-2" role="toolbar">
+                <h1 class="h4 m-0">Keep</h1>
+                <input type="text" class="search-bar form-control bg-secondary text-white ms-3" placeholder="Search"
+                    aria-label="Search notes" oninput="noteManager.filterNotes(this.value)">
             </div>
-        </div>
-    </nav>
 
-    <!-- Main Content -->
-    <main class="fundoo-main-content">
-        <!-- Floating Action Button (FAB) -->
-        <button id="create-note-btn" class="fundoo-fab">
-            <i class="fas fa-plus"></i>
-        </button>
-
-        <!-- Toggle View Button -->
-        <button id="toggle-view-btn" class="btn btn-secondary">Toggle View</button>
-
-        <!-- Notes Grid -->
-        <div class="fundoo-notes-grid" id="notes-grid">
-            <!-- Notes will be dynamically added here -->
-        </div>
-
-        <!-- Create Note Form -->
-        <div class="fundoo-create-note-form" id="create-note-form">
-            <h2>Create New Note</h2>
-            <form id="note-form">
-                <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="note-title" placeholder="Title" required>
-                    <label for="note-title">Title</label>
+            <!-- Note Creation Modal -->
+            <div class="modal fade" id="noteCreationModal" tabindex="-1" aria-labelledby="noteCreationModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content bg-dark text-white">
+                        <div class="modal-body p-3">
+                            <input type="text" class="note-title form-control bg-secondary text-white mb-2"
+                                placeholder="Title" data-field="title" aria-label="Note title">
+                            <textarea class="note-content form-control bg-secondary text-white mb-2"
+                                placeholder="Take a note..." data-field="content" rows="3"
+                                aria-label="Note content"></textarea>
+                            <div class="note-actions d-flex flex-wrap gap-2" role="toolbar">
+                                <button class="action-btn btn btn-outline-primary" data-action="reminder"
+                                    aria-label="Set reminder">⏰</button>
+                                <select class="color-picker form-select bg-secondary text-white" data-action="color"
+                                    aria-label="Change note color">
+                                    <option value="#303134">Default</option>
+                                    <option value="#f28b82">Red</option>
+                                    <option value="#fbbc04">Orange</option>
+                                    <option value="#fff475">Yellow</option>
+                                    <option value="#ccff90">Green</option>
+                                    <option value="#a7ffeb">Teal</option>
+                                </select>
+                                <input type="text" class="label-picker form-control bg-secondary text-white"
+                                    data-action="label" placeholder="Add label" list="label-suggestions"
+                                    aria-label="Add label">
+                                <datalist id="label-suggestions"></datalist>
+                                <input type="datetime-local" class="reminder-picker form-control bg-secondary"
+                                    data-action="reminder" aria-label="Set reminder date">
+                                <button class="action-btn btn btn-outline-danger" data-action="delete"
+                                    aria-label="Delete note">🗑️</button>
+                                <button class="btn btn-outline-secondary close-btn" data-bs-dismiss="modal"
+                                    aria-label="Close">Close</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-floating mb-3">
-                    <textarea class="form-control" id="note-content" placeholder="Content" required></textarea>
-                    <label for="note-content">Content</label>
+            </div>
+
+            <!-- Notes Container -->
+            <div class="notes-container" id="notesContainer">
+                <!-- Static data for testing -->
+                <div class="note" data-note-id="1" style="background-color: #303134" draggable="true" tabindex="0"
+                    aria-label="Note: Meeting">
+                    <h5 class="note-title">Meeting</h5>
+                    <p class="note-content">Discuss project timeline.</p>
+                    <div class="note-actions d-flex gap-2" role="toolbar">
+                        <button class="action-btn btn btn-outline-primary" data-action="pin" data-pinned="false"
+                            aria-label="Pin note">📌</button>
+                        <button class="action-btn btn btn-outline-primary" data-action="reminder"
+                            aria-label="Set reminder">⏰</button>
+                        <select class="color-picker form-select bg-secondary text-white" data-action="color"
+                            aria-label="Change note color">
+                            <option value="#303134" selected>Default</option>
+                            <option value="#f28b82">Red</option>
+                            <option value="#fbbc04">Orange</option>
+                            <option value="#fff475">Yellow</option>
+                            <option value="#ccff90">Green</option>
+                            <option value="#a7ffeb">Teal</option>
+                        </select>
+                        <input type="text" class="label-picker form-control bg-secondary text-white" data-action="label"
+                            value="" list="label-suggestions" aria-label="Edit label">
+                        <input type="datetime-local" class="reminder-picker form-control bg-secondary"
+                            data-action="reminder" value="" aria-label="Edit reminder">
+                        <button class="action-btn btn btn-outline-warning" data-action="archive"
+                            aria-label="Archive note">📦</button>
+                        <button class="action-btn btn btn-outline-danger" data-action="delete"
+                            aria-label="Delete note">🗑️</button>
+                    </div>
                 </div>
-                <div class="form-floating mb-3">
-                    <input type="color" class="form-control" id="note-color" value="#ffffff">
-                    <label for="note-color">Color</label>
+                <div class="note" data-note-id="2" style="background-color: #f28b82" draggable="true" tabindex="0"
+                    aria-label="Note: Task">
+                    <h5 class="note-title">Task</h5>
+                    <p class="note-content">Finish report by EOD.</p>
+                    <div class="note-actions d-flex gap-2" role="toolbar">
+                        <button class="action-btn btn btn-outline-primary" data-action="pin" data-pinned="true"
+                            aria-label="Pin note">📌</button>
+                        <button class="action-btn btn btn-outline-primary" data-action="reminder"
+                            aria-label="Set reminder">⏰</button>
+                        <select class="color-picker form-select bg-secondary text-white" data-action="color"
+                            aria-label="Change note color">
+                            <option value="#303134">Default</option>
+                            <option value="#f28b82" selected>Red</option>
+                            <option value="#fbbc04">Orange</option>
+                            <option value="#fff475">Yellow</option>
+                            <option value="#ccff90">Green</option>
+                            <option value="#a7ffeb">Teal</option>
+                        </select>
+                        <input type="text" class="label-picker form-control bg-secondary text-white" data-action="label"
+                            value="work" list="label-suggestions" aria-label="Edit label">
+                        <input type="datetime-local" class="reminder-picker form-control bg-secondary"
+                            data-action="reminder" value="2025-03-01T10:00" aria-label="Edit reminder">
+                        <button class="action-btn btn btn-outline-warning" data-action="archive"
+                            aria-label="Archive note">📦</button>
+                        <button class="action-btn btn btn-outline-danger" data-action="delete"
+                            aria-label="Delete note">🗑️</button>
+                    </div>
                 </div>
-                <button type="submit" class="fundoo-submit-button">Save</button>
-                <button type="button" id="cancel-note-btn" class="fundoo-cancel-button">Cancel</button>
-            </form>
+            </div>
+
+            <!-- Floating Action Button -->
+            <button class="fab btn btn-primary rounded-circle position-fixed"
+                style="bottom: 20px; right: 20px; width: 56px; height: 56px;" aria-label="Create new note">+</button>
+
+            <!-- Snackbar -->
+            <div id="snackbar" class="snackbar position-fixed text-white p-2 rounded"
+                style="left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 30; visibility: hidden;"></div>
         </div>
-    </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class NoteManager {
+            constructor() {
+                this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || ""; // Fallback for standalone
+                this.newNoteModal = new bootstrap.Modal(document.getElementById('noteCreationModal'));
+                this.notesContainer = document.getElementById("notesContainer");
+                this.fab = document.querySelector(".fab");
+                this.snackbar = document.getElementById("snackbar");
+                this.state = {
+                    notes: new Map(),
+                    newNoteData: { title: "", content: "", color: "#303134", label: "", reminder: null },
+                    undoStack: [],
+                    redoStack: [],
+                    searchTerm: ""
+                };
+                this.debouncedSave = this.debounce(this.saveNote.bind(this), 500);
+                this.initEventListeners();
+                this.fetchSuggestions();
+            }
+
+            initEventListeners() {
+                if (!this.fab || !this.notesContainer || !this.newNoteModal) {
+                    console.error("DOM elements not found");
+                    return;
+                }
+                this.fab.addEventListener("click", () => this.newNoteModal.show());
+                this.notesContainer.addEventListener("click", (e) => this.handleAction(e));
+                this.notesContainer.addEventListener("dragstart", (e) => this.handleDragStart(e));
+                this.notesContainer.addEventListener("dragover", (e) => this.handleDragOver(e));
+                this.notesContainer.addEventListener("drop", (e) => this.handleDrop(e));
+                document.querySelector(".search-bar").addEventListener("input", (e) => this.filterNotes(e.target.value));
+                this.newNoteModal._element.addEventListener("shown.bs.modal", () => {
+                    this.newNoteModal._element.querySelector(".note-title").focus();
+                    this.suggestContent();
+                });
+                this.newNoteModal._element.querySelectorAll("[data-field]").forEach(input => {
+                    input.addEventListener("input", (e) => this.updateState(e.target));
+                });
+                this.newNoteModal._element.addEventListener("input", () => this.debouncedSave());
+                document.addEventListener("keydown", (e) => this.handleKeyboard(e));
+            }
+
+            updateState(target) {
+                this.state.newNoteData[target.dataset.field] = target.value;
+                this.state.undoStack.push({ ...this.state.newNoteData });
+                this.state.redoStack = [];
+            }
+
+            async saveNote() {
+                if (!this.state.newNoteData.title && !this.state.newNoteData.content) return;
+                try {
+                    const response = { ok: true, json: () => Promise.resolve({ id: Date.now(), ...this.state.newNoteData }) };
+                    if (response.ok) {
+                        const note = await response.json();
+                        const noteElement = this.createNoteElement(note);
+                        if (note.pinned) noteElement.classList.add("pinned");
+                        this.notesContainer.appendChild(noteElement);
+                        this.showSnackbar("Note saved!");
+                        this.newNoteModal.hide();
+                    }
+                } catch (error) {
+                    this.showSnackbar("Save failed: " + error.message, "danger");
+                }
+            }
+
+            async updateNote(noteId, data) {
+                try {
+                    const note = document.querySelector(`[data-note-id="${noteId}"]`);
+                    if (data.pinned !== undefined) {
+                        note.classList.toggle("pinned", data.pinned);
+                        this.reorderNotes();
+                    }
+                    if (data.color) note.style.backgroundColor = data.color;
+                    if (data.archived) note.remove();
+                    this.showSnackbar("Note updated!");
+                } catch (error) {
+                    this.showSnackbar("Update failed: " + error.message, "danger");
+                }
+            }
+
+            async deleteNote(noteId) {
+                if (confirm("Delete note?")) {
+                    document.querySelector(`[data-note-id="${noteId}"]`).remove();
+                    this.showSnackbar("Note deleted!");
+                }
+            }
+
+            handleAction(e) {
+                const target = e.target.closest(".action-btn, .color-picker, .label-picker, .reminder-picker");
+                if (!target) return;
+                e.preventDefault();
+                const noteId = target.closest(".note")?.dataset.noteId || "new";
+                const action = target.dataset.action || target.value;
+                let data = {};
+
+                switch (action) {
+                    case "pin":
+                        data.pinned = target.dataset.pinned === "true" ? false : true;
+                        target.dataset.pinned = data.pinned;
+                        break;
+                    case "color":
+                        data.color = target.value;
+                        break;
+                    case "reminder":
+                        data.reminder = target.value || null;
+                        break;
+                    case "label":
+                        data.label = target.value;
+                        break;
+                    case "archive":
+                        data.archived = true;
+                        break;
+                    case "delete":
+                        this.deleteNote(noteId);
+                        return;
+                }
+                if (Object.keys(data).length) this.updateNote(noteId, data);
+            }
+
+            handleDragStart(e) {
+                e.target.classList.add("dragging");
+                e.dataTransfer.setData("text/plain", e.target.dataset.noteId);
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                const noteId = e.dataTransfer.getData("text");
+                const draggedNote = document.querySelector(`[data-note-id="${noteId}"]`);
+                draggedNote.classList.remove("dragging");
+                this.notesContainer.appendChild(draggedNote);
+                this.reorderNotes();
+            }
+
+            reorderNotes() {
+                const notes = Array.from(this.notesContainer.children);
+                notes.sort((a, b) => {
+                    const aPinned = a.classList.contains("pinned");
+                    const bPinned = b.classList.contains("pinned");
+                    return aPinned === bPinned ? 0 : aPinned ? -1 : 1;
+                });
+                notes.forEach(note => this.notesContainer.appendChild(note));
+            }
+
+            filterNotes(term) {
+                this.state.searchTerm = term.toLowerCase();
+                const notes = this.notesContainer.queryAll(".note");
+                notes.forEach(note => {
+                    const title = note.querySelector(".note-title")?.textContent.toLowerCase() || "";
+                    const content = note.querySelector(".note-content")?.textContent.toLowerCase() || "";
+                    note.style.display = (title.includes(this.state.searchTerm) || content.includes(this.state.searchTerm)) ? "" : "none";
+                });
+            }
+
+            handleKeyboard(e) {
+                if (e.ctrlKey && e.key === "z" && this.state.undoStack.length) {
+                    this.state.redoStack.push(this.state.undoStack.pop());
+                    this.updateNewNoteFromStack();
+                } else if (e.ctrlKey && e.key === "y" && this.state.redoStack.length) {
+                    this.state.undoStack.push(this.state.redoStack.pop());
+                    this.updateNewNoteFromStack();
+                }
+            }
+
+            updateNewNoteFromStack() {
+                this.state.newNoteData = { ...this.state.undoStack[this.state.undoStack.length - 1] };
+                this.newNoteModal._element.querySelector("[data-field='title']").value = this.state.newNoteData.title;
+                this.newNoteModal._element.querySelector("[data-field='content']").value = this.state.newNoteData.content;
+            }
+
+            showSnackbar(message, type = "success") {
+                this.snackbar.textContent = message;
+                this.snackbar.className = `snackbar position-fixed text-white p-2 rounded bg-${type === "danger" ? "danger" : "success"}`;
+                this.snackbar.style.visibility = "visible";
+                setTimeout(() => this.snackbar.style.visibility = "hidden", 3000);
+            }
+
+            async fetchSuggestions() {
+                const content = this.state.newNoteData.content;
+                if (content) {
+                    const suggestions = ["work", "personal", "urgent", "meeting"].filter(s => content.toLowerCase().includes(s));
+                    const datalist = document.getElementById("label-suggestions");
+                    datalist.innerHTML = suggestions.map(s => `<option value="${s}">`).join("");
+                }
+            }
+
+            suggestContent() {
+                if (!this.state.newNoteData.content) {
+                    this.state.newNoteData.content = "Suggested: Meeting notes or tasks...";
+                    this.newNoteModal._element.querySelector("[data-field='content']").value = this.state.newNoteData.content;
+                }
+            }
+
+            debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            createNoteElement(note) {
+                const div = document.createElement("div");
+                div.className = "note";
+                div.dataset.noteId = note.id;
+                div.style.backgroundColor = note.color || "#303134";
+                div.draggable = true;
+                div.tabIndex = 0;
+                div.setAttribute("aria-label", `Note: ${note.title || "Untitled"}`);
+                div.innerHTML = `
+          <h5 class="note-title">${note.title || ""}</h5>
+          <p class="note-content">${note.content || ""}</p>
+          <div class="note-actions d-flex gap-2" role="toolbar">
+            <button class="action-btn btn btn-outline-primary" data-action="pin" data-pinned="${note.pinned || false}" aria-label="Pin note">📌</button>
+            <button class="action-btn btn btn-outline-primary" data-action="reminder" aria-label="Set reminder">⏰</button>
+            <select class="color-picker form-select bg-secondary text-white" data-action="color" aria-label="Change note color">
+              <option value="#303134" ${note.color === "#303134" ? "selected" : ""}>Default</option>
+              <option value="#f28b82" ${note.color === "#f28b82" ? "selected" : ""}>Red</option>
+              <option value="#fbbc04" ${note.color === "#fbbc04" ? "selected" : ""}>Orange</option>
+              <option value="#fff475" ${note.color === "#fff475" ? "selected" : ""}>Yellow</option>
+              <option value="#ccff90" ${note.color === "#ccff90" ? "selected" : ""}>Green</option>
+              <option value="#a7ffeb" ${note.color === "#a7ffeb" ? "selected" : ""}>Teal</option>
+            </select>
+            <input type="text" class="label-picker form-control bg-secondary text-white" data-action="label" value="${note.label || ""}" list="label-suggestions" aria-label="Edit label">
+            <input type="datetime-local" class="reminder-picker form-control bg-secondary" data-action="reminder" value="${note.reminder ? new Date(note.reminder).toISOString().slice(0, 16) : ""}" aria-label="Edit reminder">
+            <button class="action-btn btn btn-outline-warning" data-action="archive" aria-label="Archive note">📦</button>
+            <button class="action-btn btn btn-outline-danger" data-action="delete" aria-label="Delete note">🗑️</button>
+          </div>
+        `;
+                if (note.pinned) div.classList.add("pinned");
+                return div;
+            }
+        }
+
+        const noteManager = new NoteManager();
+        document.addEventListener("DOMContentLoaded", () => {
+            if (noteManager) console.log("NoteManager initialized");
+            else console.error("NoteManager failed to initialize");
+        });
+    </script>
 </body>
 
 </html>
