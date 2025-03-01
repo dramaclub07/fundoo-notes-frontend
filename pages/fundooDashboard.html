@@ -13,77 +13,88 @@
 </head>
 
 <body>
-
-  <div class="fundoo-dash-container">
-    <div class="fundoo-dash-sidebar">
-      <nav class="sidebar-nav">
-        <ul>
-          <li id="notesTab" class="active"><i class="fas fa-pen-nib"></i> <span>Notes</span></li>
-          <li id="archiveTab"><i class="fas fa-box-archive"></i> <span>Archive</span></li>
-          <li id="trashTab"><i class="fas fa-trash-can"></i> <span>Trash</span></li>
-        </ul>
-      </nav>
+  <!-- Main container -->
+  <div class="fundoo-main-container">
+    <!-- Header section -->
+    <div class="fundoo-header">
+      <div class="nav-header">
+        <i class="fas fa-asterisk essential-menu"></i>
+        <h1 id="navTitle">Fundoo</h1>
+      </div>
+      <div class="fundoo-dash-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search notes...">
+      </div>
+      <div class="nav-actions">
+        <button id="refreshBtn" class="btn btn-outline-secondary btn-sm" title="Refresh Notes">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+        <button id="viewToggleBtn" class="btn btn-outline-secondary btn-sm" title="Switch to Horizontal View">
+          <i class="fas fa-th"></i>
+        </button>
+        <div class="btn-group">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="dropdown" aria-expanded="false"
+            title="Settings">
+            <i class="fas fa-cog"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><button id="toggleTheme" class="dropdown-item" type="button">Toggle Dark Theme</button></li>
+            <li><button id="keyboardShortcuts" class="dropdown-item" type="button">Keyboard Shortcuts</button></li>
+            <li><button id="logoutBtn" class="dropdown-item" type="button">Logout</button></li>
+          </ul>
+        </div>
+      </div>
     </div>
 
-    <div class="fundoo-dash-main-content">
-      <nav class="top-nav">
-        <div class="nav-header">
-          <i class="fas fa-asterisk essential-menu"></i>
-          <h1 id="navTitle">Fundoo</h1>
-        </div>
-        <div class="fundoo-dash-search">
-          <i class="fas fa-search"></i>
-          <input type="text" id="searchInput" placeholder="Search notes...">
-        </div>
-        <div class="nav-actions">
-          <button id="refreshBtn" class="btn btn-outline-secondary btn-sm" title="Refresh Notes"><i
-              class="fas fa-sync-alt"></i></button>
-          <button id="viewToggleBtn" class="btn btn-outline-secondary btn-sm" title="Switch to Horizontal View"><i
-              class="fas fa-th"></i></button>
-          <div class="btn-group">
-            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="dropdown"
-              aria-expanded="false" title="Settings">
-              <i class="fas fa-cog"></i>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><button id="toggleTheme" class="dropdown-item" type="button">Toggle Dark Theme</button></li>
-              <li><button id="keyboardShortcuts" class="dropdown-item" type="button">Keyboard Shortcuts</button></li>
-              <li><button id="logoutBtn" class="dropdown-item" type="button">Logout</button></li>
-            </ul>
-          </div>
-        </div>
-      </nav>
+    <!-- Content section (sidebar + main content) -->
+    <div class="fundoo-content">
+      <!-- Sidebar -->
+      <div class="fundoo-sidebar">
+        <nav class="sidebar-nav">
+          <ul>
+            <li id="notesTab" class="active"><i class="fas fa-pen-nib"></i> <span>Notes</span></li>
+            <li id="archiveTab"><i class="fas fa-box-archive"></i> <span>Archive</span></li>
+            <li id="trashTab"><i class="fas fa-trash-can"></i> <span>Trash</span></li>
+          </ul>
+        </nav>
+      </div>
 
-      <section class="fundoo-dash-create-note">
-        <div class="note-creation-box">
-          <input type="text" id="noteTitleInput" placeholder="Title" class="form-control" style="display: none;">
-          <textarea id="noteInput" placeholder="Take a note..." class="form-control"></textarea>
-          <div class="note-actions" style="display: none;">
-            <select class="form-select form-select-sm" id="colorPicker">
-              <option value="white">White</option>
-              <option value="#f28b82">Red</option>
-              <option value="#fbbc04">Orange</option>
-              <option value="#fff475">Yellow</option>
-              <option value="#ccff90">Green</option>
-            </select>
-            <button class="btn btn-outline-primary btn-sm archive-btn" title="Archive"><i
-                class="fas fa-box-archive"></i></button>
-            <button class="btn btn-outline-danger btn-sm delete-btn" title="Delete"><i
-                class="fas fa-trash-can"></i></button>
-            <button id="saveNoteBtn" class="btn btn-primary btn-sm">Save</button>
+      <!-- Main content area -->
+      <div class="fundoo-content-main">
+        <section class="fundoo-dash-create-note">
+          <div class="note-creation-box">
+            <input type="text" id="noteTitleInput" placeholder="Title" class="form-control" style="display: none;">
+            <textarea id="noteInput" placeholder="Take a note..." class="form-control"></textarea>
+            <div class="note-actions" style="display: none;">
+              <select class="form-select form-select-sm" id="colorPicker">
+                <option value="white">White</option>
+                <option value="#f28b82">Red</option>
+                <option value="#fbbc04">Orange</option>
+                <option value="#fff475">Yellow</option>
+                <option value="#ccff90">Green</option>
+              </select>
+              <button class="btn btn-outline-primary btn-sm archive-btn" title="Archive">
+                <i class="fas fa-box-archive"></i>
+              </button>
+              <button class="btn btn-outline-danger btn-sm delete-btn" title="Delete">
+                <i class="fas fa-trash-can"></i>
+              </button>
+              <button id="saveNoteBtn" class="btn btn-primary btn-sm">Save</button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="fundoo-dash-notes-grid grid-view">
-        <!-- Notes will be populated dynamically -->
-      </section>
-      <section class="fundoo-dash-trash-gird">
-        <!-- Trash section unchanged for now -->
-      </section>
+        <section class="fundoo-dash-notes-grid grid-view">
+          <!-- Notes will be populated dynamically -->
+        </section>
+        <section class="fundoo-dash-trash-gird">
+          <!-- Trash section unchanged for now -->
+        </section>
+      </div>
     </div>
   </div>
 
+  <!-- Modal (unchanged) -->
   <div class="modal fade" id="noteModal" tabindex="-1" aria-labelledby="noteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -95,8 +106,9 @@
           <input type="text" id="modalNoteTitle" class="form-control mb-2" placeholder="Title">
           <textarea id="modalNoteContent" class="form-control mb-2" rows="5" placeholder="Take a note..."></textarea>
           <div class="modal-note-actions">
-            <button class="btn btn-outline-primary btn-sm" data-action="pin" title="Pin"><i
-                class="fas fa-thumbtack"></i></button>
+            <button class="btn btn-outline-primary btn-sm" data-action="pin" title="Pin">
+              <i class="fas fa-thumbtack"></i>
+            </button>
             <select class="form-select form-select-sm d-inline-block w-auto" id="modalColorPicker" title="Color">
               <option value="white">White</option>
               <option value="#f28b82">Red</option>
@@ -117,7 +129,6 @@
       </div>
     </div>
   </div>
-
 </body>
 
 </html>
